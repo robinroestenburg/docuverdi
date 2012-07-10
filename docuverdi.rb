@@ -13,10 +13,6 @@ class HTMLwithPygments < Redcarpet::Render::HTML
       Pygments.highlight(code, :lexer => language)
     end
   end
-
-# def image(link, title, alt_text)
-#   "<div class=\"thumbnail-wrapper\"><div class=\"thumbnail\"><img src=\"#{link}\" /></div></div>"
-# end
 end
 
 def markdown(text)
@@ -27,9 +23,7 @@ rescue
   'Error occurred during Markdown rendering.'
 end
 
-
-# Render a template using Markdown.
-
+# Render templates using Markdown.
 output = ""
 
 Dir.new('.').select { |f| f.end_with? '.md' }.each { |file|
@@ -45,26 +39,11 @@ File.open('public/index.html', 'w') do |file|
   file.write output_two
 end
 
-# Render a Haml template.
+# Render a Sass template.
 style = Tilt::SassTemplate.new('style.css.sass')
 style_output = style.render
 
 File.open('public/css/style.css', 'w') do |file|
   file.write style_output
 end
-
-
-# Load up output in Nokogiri and perform manipulation.
-#@manual = Nokogiri::HTML(output).css('body')
-#
-#@manual.css('code').each do |code|
-#  # Highlight code
-#  highlighted = Pygments.highlight(code.text, :lexer => 'ruby')
-#
-#  code.replace highlighted
-#end
-#
-#puts @manual
-
-
 
