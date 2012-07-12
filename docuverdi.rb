@@ -13,10 +13,29 @@ class HTMLwithPygments < Redcarpet::Render::HTML
       Pygments.highlight(code, :lexer => language)
     end
   end
+
+  def table(header, body)
+    "<table class=\"table table-condensed table-bordered\"><thead>#{header}</thead><tbody>#{body}</tbody></table>"
+  end
+
+  def header(text, header_level)
+    if header_level == 1
+      "<div class=\"page-header\"><h#{header_level}>#{text}</h#{header_level}></div>"
+    else
+      "<h#{header_level}>#{text}</h#{header_level}>"
+    end
+  end
+  def image(link, title, alt_text)
+    "<div class=\"image-centered\"><img src=\"#{link}\" alt=\"#{alt_text}\" /></div>"
+  end
 end
 
 def markdown(text)
-  options  = { :autolink => true, :space_after_headers => true, :fenced_code_blocks => true }
+  options  = { autolink: true,
+               space_after_headers: true,
+               fenced_code_blocks: true,
+               no_intra_emphasis: true,
+               tables: true }
   markdown = Redcarpet::Markdown.new(HTMLwithPygments, options)
   markdown.render(text)
 rescue
@@ -24,12 +43,11 @@ rescue
 end
 
 # Render templates using Markdown.
-output = ""
-
-Dir.new('.').select { |f| f.end_with? '.md' }.each { |file|
-  template = File.open(file).read
-  output += markdown(template)
-}
+sections = Dir.new('sections').select { |f| f.end_with? '.md' }
+output   = sections.inject("") do |output, file|
+             template = File.open("sections/#{file}").read
+             output + markdown(template)
+           end
 
 # Render a Haml template.
 template_two = Tilt::HamlTemplate.new('index.html.haml')
