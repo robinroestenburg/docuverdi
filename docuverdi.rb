@@ -42,18 +42,45 @@ rescue
   'Error occurred during Markdown rendering.'
 end
 
+doc_directory = ARGV.shift
+doc_title     = ARGV.shift
+show_toc      = ARGV.shift
+
 # Render templates using Markdown.
-sections = Dir.new('sections').select { |f| f.end_with? '.md' }
+sections = Dir.new("#{doc_directory}/sections").select { |f| f.end_with? '.md' }
 output   = sections.inject("") do |output, file|
-             template = File.open("sections/#{file}").read
+             template = File.open("#{doc_directory}/sections/#{file}").read
              output + markdown(template)
            end
 
+# Parse rendered template using Nokogiri
+template = Nokogiri::HTML(output).css('body')
+
+if show_toc
+
+  # Link <h1> <h2> and <h3> tags and create a table of contents.
+  links = template.css('h1, h2').collect do |node|
+    href = node.text.downcase.gsub(/\s/, '_')
+    name = node.text
+    level = node.name[1].to_i
+    node.inner_html = '<a name="' + href + '" href="#' + href + '">' + node.inner_html + '</a>'
+
+    { :name => name, :href => href, :level => level }
+  end
+  links.compact!
+  links = links[2..-1]
+  links.reverse.each do |link|
+    template.css('.page-header').first.add_next_sibling("<div class='link'><h#{link[:level]+3}><a href='##{link[:href]}'>#{link[:name]}</a></h#{link[:level]+3}></div>")
+  end
+end
+
 # Render a Haml template.
 template_two = Tilt::HamlTemplate.new('index.html.haml')
-output_two = template_two.render { output }
+output_two = template_two.render(Object.new,
+                                 output: template.to_s,
+                                 title: doc_title)
 
-File.open('public/index.html', 'w') do |file|
+File.open("#{doc_directory}/public/index.html", 'w') do |file|
   file.write output_two
 end
 
@@ -61,7 +88,7 @@ end
 style = Tilt::SassTemplate.new('style.css.sass')
 style_output = style.render
 
-File.open('public/css/style.css', 'w') do |file|
+File.open("#{doc_directory}/public/css/style.css", 'w') do |file|
   file.write style_output
 end
 
