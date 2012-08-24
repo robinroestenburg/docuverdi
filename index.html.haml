@@ -1,17 +1,12 @@
 !!! 5
 %html
   %head
-    %title Title
+    %title= title
     %link(rel="stylesheet" type="text/css" href="css/bootstrap.css")
     %link(rel="stylesheet" type="text/css" href="css/style.css")
     %link(rel="stylesheet" type="text/css" href="css/_pygments_github.css")
   %body
 
     .container
-
-      .row
-        .span2(style="color: white") .
-          
-        .span8
-          = yield
+      = output
       
